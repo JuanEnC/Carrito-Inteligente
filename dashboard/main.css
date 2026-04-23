@@ -1,0 +1,180 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f9;
+}
+/* Estilos de la barra de navegación */
+.navbar {
+  background: #333;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+.navbar button {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+.navbar button:hover,
+.navbar button.active {
+  background: #555;
+}
+
+/* Contenedores de las vistas */
+.view-container {
+  display: none;
+  padding: 20px;
+  text-align: center;
+}
+.view-container.active {
+  display: block;
+}
+
+/* Indicador de estado de conexión */
+#status-bar {
+  text-align: center;
+  padding: 10px;
+  background: #ffcc00;
+  font-weight: bold;
+}
+/* Estilos para las tarjetas de modo */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.icon-container {
+  font-size: 60px;
+  margin-bottom: 15px;
+}
+.status-indicator {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 5px;
+  font-weight: bold;
+  display: inline-block;
+}
+/* Animación para el punto indicador */
+.dot {
+  height: 12px;
+  width: 12px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/* Estilos para el Control MQTT (Modo 3) */
+.control-panel {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Cuadrícula del D-Pad (3x3) */
+.d-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-template-rows: repeat(3, 80px);
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+.btn-dir {
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none; /* Evita que el texto se seleccione al presionar en móviles */
+  touch-action: manipulation; /* Optimiza para toques táctiles */
+}
+.btn-dir:active {
+  background: #0b7dda;
+  transform: scale(0.95);
+}
+.btn-stop {
+  background: #f44336;
+  font-weight: bold;
+  font-size: 14px;
+}
+.btn-stop:active {
+  background: #da190b;
+}
+
+/* Panel de Luces y Claxon */
+.action-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.btn-action {
+  padding: 15px 20px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  flex-grow: 1;
+}
+.btn-ambar {
+  background: #ff9800;
+}
+.btn-ambar:active {
+  background: #e68a00;
+}
+.btn-dark {
+  background: #333;
+}
+.btn-dark:active {
+  background: #000;
+}
+/* Estilos para el Mapa (Modo 4) */
+#map-container {
+  height: 400px;
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border: 2px solid #ccc;
+}
+.coord-display {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  margin-bottom: 15px;
+}
+.btn-go {
+  background: #4caf50;
+  color: white;
+  padding: 12px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-go:active {
+  background: #388e3c;
+}

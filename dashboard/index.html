@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Car Dashboard</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="./main.css" />
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+    <div id="status-bar">Conectando al Broker MQTT...</div>
+
+    <div class="navbar">
+      <button id="btn-0" class="active" onclick="cambiarModo(0, 'Espera')">
+        Espera
+      </button>
+      <button id="btn-1" onclick="cambiarModo(1, 'Seguidor')">Seguidor</button>
+      <button id="btn-2" onclick="cambiarModo(2, 'Evasión')">Evasión</button>
+      <button id="btn-3" onclick="cambiarModo(3, 'MQTT')">Control MQTT</button>
+      <button id="btn-4" onclick="cambiarModo(4, 'GPS')">GPS</button>
+    </div>
+
+    <div id="vista-0" class="view-container active">
+      <h2>Modo Espera</h2>
+      <p>El carrito está inactivo, esperando instrucciones.</p>
+    </div>
+
+    <div id="vista-1" class="view-container">
+      <div class="card">
+        <div class="icon-container">🛣️</div>
+        <h2>Modo Seguidor de Línea</h2>
+        <p>
+          El vehículo está en control autónomo utilizando la matriz infrarroja
+          de 8 vías para mantenerse dentro del circuito.
+        </p>
+        <div class="status-indicator">
+          <span class="dot"></span> Automático: Leyendo pista
+        </div>
+      </div>
+    </div>
+
+    <div id="vista-2" class="view-container">
+      <div class="card">
+        <div class="icon-container">🦇</div>
+        <h2>Modo Evasión de Obstáculos</h2>
+        <p>
+          El vehículo navega libremente. El sensor ultrasónico HC-SR04 está
+          escaneando el área frontal para evitar colisiones.
+        </p>
+        <div class="status-indicator">
+          <span class="dot"></span> Automático: Escaneando entorno
+        </div>
+      </div>
+    </div>
+    <div id="vista-3" class="view-container">
+      <h2>Control Manual (8 Direcciones)</h2>
+      <div class="control-panel">
+        <div class="d-pad">
+          <button
+            class="btn-dir"
+            onpointerdown="mover('DIAG_AD_IZQ')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ↖
+          </button>
+          <button
+            class="btn-dir"
+            onpointerdown="mover('ADELANTE')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ⬆
+          </button>
+          <button
+            class="btn-dir"
+            onpointerdown="mover('DIAG_AD_DER')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ↗
+          </button>
+
+          <button
+            class="btn-dir"
+            onpointerdown="mover('IZQ')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ⬅
+          </button>
+          <button class="btn-dir btn-stop" onpointerdown="mover('STOP')">
+            STOP
+          </button>
+          <button
+            class="btn-dir"
+            onpointerdown="mover('DER')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ➡
+          </button>
+
+          <button
+            class="btn-dir"
+            onpointerdown="mover('DIAG_AT_IZQ')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ↙
+          </button>
+          <button
+            class="btn-dir"
+            onpointerdown="mover('ATRAS')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ⬇
+          </button>
+          <button
+            class="btn-dir"
+            onpointerdown="mover('DIAG_AT_DER')"
+            onpointerup="mover('STOP')"
+            onpointerleave="mover('STOP')"
+          >
+            ↘
+          </button>
+        </div>
+
+        <h3>Señales y Claxon</h3>
+        <div class="action-panel">
+          <button
+            class="btn-action btn-ambar"
+            onclick="enviarFeedback('DIR_IZQ')"
+          >
+            ⇦ Dir Izq
+          </button>
+          <button
+            class="btn-action btn-ambar"
+            onclick="enviarFeedback('PREVENTIVAS')"
+          >
+            ⚠️ Preventivas
+          </button>
+          <button
+            class="btn-action btn-ambar"
+            onclick="enviarFeedback('DIR_DER')"
+          >
+            Dir Der ⇨
+          </button>
+        </div>
+        <div class="action-panel" style="margin-top: 10px">
+          <button
+            class="btn-action btn-dark"
+            onclick="enviarFeedback('LUCES_OFF')"
+          >
+            Apagar Luces
+          </button>
+          <button
+            class="btn-action btn-stop"
+            style="font-size: 18px"
+            onpointerdown="enviarFeedback('CLAXON_ON')"
+            onpointerup="enviarFeedback('CLAXON_OFF')"
+            onpointerleave="enviarFeedback('CLAXON_OFF')"
+          >
+            🔊 CLAXON
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="vista-4" class="view-container">
+      <h2>Navegación GPS Autónoma</h2>
+      <p>Toca el mapa para establecer el destino del carrito.</p>
+
+      <div id="map-container"></div>
+
+      <div class="coord-display">
+        Destino: <span id="target-lat">--</span>,
+        <span id="target-lng">--</span>
+      </div>
+
+      <div class="action-panel">
+        <button class="btn-go" onclick="enviarRutaGPS()">
+          🚀 INICIAR VIAJE
+        </button>
+        <button class="btn-action btn-stop" onclick="mover('STOP')">
+          🛑 DETENER
+        </button>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
