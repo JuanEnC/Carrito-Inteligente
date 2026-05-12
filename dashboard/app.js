@@ -71,6 +71,11 @@ function cambiarModo(modoInt, nombreModo) {
     alert("Esperando conexión al broker MQTT...");
   }
 
+  if (modoInt === 3) {
+    // Inicializamos el joystick cuando se abre la vista del Modo MQTT
+    inicializarJoystick();
+  }
+
   // --- NUEVO CÓDIGO AÑADIDO PARA EL MAPA ---
   if (modoInt === 4) {
     inicializarMapa();
@@ -176,4 +181,63 @@ function enviarRutaGPS() {
   client.publish(topicGPS, payload, { qos: 1 });
   console.log(`Ruta GPS enviada: ${payload}`);
   alert(`Ruta enviada al carrito.\nDestino: ${payload}`);
+}
+
+// ==========================================
+// 7. LÓGICA DEL JOYSTICK (NIPPLE.JS)
+// ==========================================
+let joystickManager;
+
+function inicializarJoystick() {
+  // Si ya existe, no lo volvemos a crear
+  if (joystickManager) return;
+
+  const zone = document.getElementById("joystick-zone");
+
+  // Configuramos un joystick estático en el centro del contenedor
+  joystickManager = nipplejs.create({
+    zone: zone,
+    mode: "static",
+    position: { left: "50%", top: "50%" },
+    color: "#2196F3",
+    size: 150,
+  });
+
+  // Evento: Cuando el usuario mueve el joystick
+  joystickManager.on("move", function (evt, data) {
+    if (!data.angle) return; // Evita errores si no hay ángulo registrado aún
+
+    const angle = data.angle.degree;
+    let dirCmd = "STOP";
+
+    // Mapeo matemático de los 360 grados a las 8 direcciones del ESP32
+    if (angle >= 337.5 || angle < 22.5) {
+      dirCmd = "DER";
+    } else if (angle >= 22.5 && angle < 67.5) {
+      dirCmd = "DIAG_AD_DER";
+    } else if (angle >= 67.5 && angle < 112.5) {
+      dirCmd = "ADELANTE";
+    } else if (angle >= 112.5 && angle < 157.5) {
+      dirCmd = "DIAG_AD_IZQ";
+    } else if (angle >= 157.5 && angle < 202.5) {
+      dirCmd = "IZQ";
+    } else if (angle >= 202.5 && angle < 247.5) {
+      dirCmd = "DIAG_AT_IZQ";
+    } else if (angle >= 247.5 && angle < 292.5) {
+      dirCmd = "ATRAS";
+    } else if (angle >= 292.5 && angle < 337.5) {
+      dirCmd = "DIAG_AT_DER";
+    }
+
+    // Llamamos a nuestra función existente. Ésta ya se encarga de no repetir mensajes innecesarios.
+    mover(dirCmd);
+    document.getElementById("joystick-status").innerText =
+      "Dirección: " + dirCmd;
+  });
+
+  // Evento: Cuando el usuario suelta el joystick
+  joystickManager.on("end", function (evt, data) {
+    mover("STOP");
+    document.getElementById("joystick-status").innerText = "Dirección: STOP";
+  });
 }

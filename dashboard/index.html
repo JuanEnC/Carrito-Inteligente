@@ -13,6 +13,8 @@
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Librería para el Joystick Animado (Nipple.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
   </head>
   <body>
     <div id="status-bar">Conectando al Broker MQTT...</div>
@@ -62,77 +64,31 @@
     <div id="vista-3" class="view-container">
       <h2>Control Manual (8 Direcciones)</h2>
       <div class="control-panel">
-        <div class="d-pad">
-          <button
-            class="btn-dir"
-            onpointerdown="mover('DIAG_AD_IZQ')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ↖
-          </button>
-          <button
-            class="btn-dir"
-            onpointerdown="mover('ADELANTE')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ⬆
-          </button>
-          <button
-            class="btn-dir"
-            onpointerdown="mover('DIAG_AD_DER')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ↗
-          </button>
-
-          <button
-            class="btn-dir"
-            onpointerdown="mover('IZQ')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ⬅
-          </button>
-          <button class="btn-dir btn-stop" onpointerdown="mover('STOP')">
-            STOP
-          </button>
-          <button
-            class="btn-dir"
-            onpointerdown="mover('DER')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ➡
-          </button>
-
-          <button
-            class="btn-dir"
-            onpointerdown="mover('DIAG_AT_IZQ')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ↙
-          </button>
-          <button
-            class="btn-dir"
-            onpointerdown="mover('ATRAS')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ⬇
-          </button>
-          <button
-            class="btn-dir"
-            onpointerdown="mover('DIAG_AT_DER')"
-            onpointerup="mover('STOP')"
-            onpointerleave="mover('STOP')"
-          >
-            ↘
-          </button>
-        </div>
+        <!-- Contenedor del Joystick Nipple.js -->
+        <div
+          id="joystick-zone"
+          style="
+            width: 100%;
+            height: 220px;
+            position: relative;
+            background: #e3f2fd;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            touch-action: none;
+          "
+        ></div>
+        <p
+          id="joystick-status"
+          style="
+            text-align: center;
+            font-weight: bold;
+            color: #2196f3;
+            font-size: 18px;
+            margin-bottom: 20px;
+          "
+        >
+          Dirección: STOP
+        </p>
 
         <h3>Señales y Claxon</h3>
         <div class="action-panel">
