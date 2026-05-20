@@ -10,6 +10,8 @@ extern void changeMode(CarMode newMode);
 extern double targetLat;
 extern double targetLng;
 
+extern int currentSpeed;
+
 // Constructor: Vinculamos el cliente MQTT con el cliente WiFi
 NetworkControl::NetworkControl() : mqttClient(espClient)
 {
@@ -77,6 +79,8 @@ void NetworkControl::reconnectMQTT()
 
         // ¡NUEVA SUSCRIPCIÓN!
         mqttClient.subscribe("smartcar/control/gps");
+        // NUEVA SUSCRIPCIÓN
+        mqttClient.subscribe("smartcar/control/velocidad");
 
         // Opcional: Avisar a la app que el carro está en línea
         publish("smartcar/status", "ONLINE");
@@ -138,27 +142,24 @@ void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int lengt
     // ------------------------------------------------
     else if (String(topic) == "smartcar/control/mover")
     {
-        if (currentMode == MODO_MQTT)
-        {
-            if (message == "ADELANTE")
-                Motors.drive(DIR_FORWARD);
-            else if (message == "ATRAS")
-                Motors.drive(DIR_BACKWARD);
-            else if (message == "IZQ")
-                Motors.drive(DIR_LEFT);
-            else if (message == "DER")
-                Motors.drive(DIR_RIGHT);
-            else if (message == "DIAG_AD_IZQ")
-                Motors.drive(DIR_FORWARD_LEFT);
-            else if (message == "DIAG_AD_DER")
-                Motors.drive(DIR_FORWARD_RIGHT);
-            else if (message == "DIAG_AT_IZQ")
-                Motors.drive(DIR_BACKWARD_LEFT);
-            else if (message == "DIAG_AT_DER")
-                Motors.drive(DIR_BACKWARD_RIGHT);
-            else if (message == "STOP")
-                Motors.drive(DIR_STOP);
-        }
+        if (message == "ADELANTE")
+            Motors.drive(DIR_FORWARD, currentSpeed);
+        else if (message == "ATRAS")
+            Motors.drive(DIR_BACKWARD, currentSpeed);
+        else if (message == "IZQ")
+            Motors.drive(DIR_LEFT, currentSpeed);
+        else if (message == "DER")
+            Motors.drive(DIR_RIGHT, currentSpeed);
+        else if (message == "DIAG_AD_IZQ")
+            Motors.drive(DIR_FORWARD_LEFT, currentSpeed);
+        else if (message == "DIAG_AD_DER")
+            Motors.drive(DIR_FORWARD_RIGHT, currentSpeed);
+        else if (message == "DIAG_AT_IZQ")
+            Motors.drive(DIR_BACKWARD_LEFT, currentSpeed);
+        else if (message == "DIAG_AT_DER")
+            Motors.drive(DIR_BACKWARD_RIGHT, currentSpeed);
+        else if (message == "STOP")
+            Motors.stop();
     }
 
     // ------------------------------------------------
@@ -204,5 +205,12 @@ void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int lengt
             Serial.print(", ");
             Serial.println(targetLng, 6);
         }
-    }   
+    }
+    else if (String(topic) == "smartcar/control/velocidad")
+    {
+        // Convertimos el texto ("100", "150", "255") a un número entero
+        currentSpeed = message.toInt();
+        Serial.print("Velocidad actualizada a: ");
+        Serial.println(currentSpeed);
+    }
 }

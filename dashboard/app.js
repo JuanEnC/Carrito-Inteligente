@@ -30,6 +30,9 @@ client.on("connect", () => {
 
   // Al conectar, forzamos al carrito a entrar en Modo Espera por seguridad
   cambiarModo(0, "Espera");
+
+  // Forzar la velocidad media por defecto al iniciar
+  cambiarVelocidad(150);
 });
 
 client.on("error", (err) => {
@@ -240,4 +243,28 @@ function inicializarJoystick() {
     mover("STOP");
     document.getElementById("joystick-status").innerText = "Dirección: STOP";
   });
+}
+
+// ==========================================
+// 8. CONTROL DE VELOCIDAD
+// ==========================================
+const topicVelocidad = "smartcar/control/velocidad";
+let velocidadActual = 150; // Media por defecto
+
+function cambiarVelocidad(vel) {
+  if (!client.connected) return;
+
+  velocidadActual = vel;
+
+  // Publicamos la velocidad como un texto (ej. "150")
+  client.publish(topicVelocidad, vel.toString(), { qos: 1 });
+  console.log(`Velocidad cambiada a: ${vel}`);
+
+  // Actualizamos la interfaz para que el botón activo cambie a color ámbar
+  document.querySelectorAll(".speed-panel button").forEach((btn) => {
+    btn.classList.remove("btn-ambar");
+    btn.classList.add("btn-dark");
+  });
+  document.getElementById("btn-spd-" + vel).classList.remove("btn-dark");
+  document.getElementById("btn-spd-" + vel).classList.add("btn-ambar");
 }

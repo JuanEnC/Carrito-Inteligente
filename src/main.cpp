@@ -22,6 +22,9 @@ CarMode currentMode = MODO_ESPERA;
 double targetLat = 0.0;
 double targetLng = 0.0;
 
+// NUEVO: Variable global para la velocidad manual (Inicia en Media)
+int currentSpeed = 150;
+
 void setup()
 {
     // Iniciar comunicación serial para depuración
@@ -59,6 +62,7 @@ void loop()
     case MODO_ESPERA:
         // El carro está encendido pero inactivo
         Motors.stop(); // Esto automáticamente enciende los LEDs rojos
+        Serial.println("Carrito modo ESPERA");
         break;
 
     case MODO_SEGUIDOR_LINEA:
