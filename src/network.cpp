@@ -1,18 +1,13 @@
-#include "Network.h"
-#include "Motors.h"
-#include "Feedback.h"
+#include "network.h"
+#include "motors.h"
+#include "feedback.h"
 
-// Importamos la variable global y la función que definimos en main.cpp
-// Esto nos permite leer en qué modo estamos y cambiarlo desde la app
 extern CarMode currentMode;
 extern void changeMode(CarMode newMode);
-
 extern double targetLat;
 extern double targetLng;
-
 extern int currentSpeed;
 
-// Constructor: Vinculamos el cliente MQTT con el cliente WiFi
 NetworkControl::NetworkControl() : mqttClient(espClient)
 {
     lastReconnectAttempt = 0;
@@ -21,7 +16,6 @@ NetworkControl::NetworkControl() : mqttClient(espClient)
 void NetworkControl::begin()
 {
     setupWiFi();
-    // Configuramos el broker MQTT y asignamos la función que recibirá los mensajes
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setCallback(mqttCallback);
 }
@@ -30,26 +24,17 @@ void NetworkControl::setupWiFi()
 {
     Serial.print("\nConectando a WiFi: ");
     Serial.println(WIFI_SSID);
-
-    // Iniciamos la conexión en segundo plano
+    WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
 void NetworkControl::loop()
 {
-    // 1. Verificar si perdimos conexión WiFi y reconectar si es necesario
     if (WiFi.status() != WL_CONNECTED)
-    {
-        // Podríamos intentar reconectar aquí, pero la librería WiFi del ESP32
-        // suele manejar la reconexión automáticamente si usamos WiFi.begin() al inicio.
         return;
-    }
-
-    // 2. Verificar si estamos conectados al broker MQTT
     if (!mqttClient.connected())
     {
         long now = millis();
-        // Intentar reconectar cada 5 segundos sin usar delay()
         if (now - lastReconnectAttempt > 5000)
         {
             lastReconnectAttempt = now;
@@ -58,7 +43,6 @@ void NetworkControl::loop()
     }
     else
     {
-        // 3. Mantener la comunicación viva y procesar mensajes entrantes
         mqttClient.loop();
     }
 }
@@ -66,25 +50,16 @@ void NetworkControl::loop()
 void NetworkControl::reconnectMQTT()
 {
     Serial.print("Intentando conexión MQTT...");
-
-    // Intentar conectar con el ID de cliente definido en Config.h
     if (mqttClient.connect(MQTT_CLIENT_ID))
     {
         Serial.println(" ¡Conectado!");
-
-        // Al conectar, nos suscribimos a los tópicos de control de la app
         mqttClient.subscribe("smartcar/control/modo");
         mqttClient.subscribe("smartcar/control/mover");
         mqttClient.subscribe("smartcar/control/feedback");
-
-        // ¡NUEVA SUSCRIPCIÓN!
         mqttClient.subscribe("smartcar/control/gps");
-        // NUEVA SUSCRIPCIÓN
         mqttClient.subscribe("smartcar/control/velocidad");
-
-        // Opcional: Avisar a la app que el carro está en línea
         publish("smartcar/status", "ONLINE");
-        Feedback.playMelody(); // Un pequeño aviso sonoro de conexión exitosa
+        Feedback.playMelody();
     }
     else
     {
@@ -97,9 +72,7 @@ void NetworkControl::reconnectMQTT()
 bool NetworkControl::publish(const char *topic, const char *payload)
 {
     if (mqttClient.connected())
-    {
         return mqttClient.publish(topic, payload);
-    }
     return false;
 }
 
@@ -108,38 +81,24 @@ bool NetworkControl::isConnected()
     return WiFi.status() == WL_CONNECTED && mqttClient.connected();
 }
 
-// ==========================================
-// CALLBACK MQTT: Aquí llegan los comandos de la App
-// ==========================================
 void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    // Convertir el payload (los datos brutos) a un String fácil de leer
     String message = "";
     for (unsigned int i = 0; i < length; i++)
     {
         message += (char)payload[i];
     }
-
     Serial.print("Mensaje recibido [");
     Serial.print(topic);
     Serial.print("]: ");
     Serial.println(message);
 
-    // ------------------------------------------------
-    // TÓPICO: CAMBIO DE MODO
-    // ------------------------------------------------
     if (String(topic) == "smartcar/control/modo")
     {
         int mode = message.toInt();
         if (mode >= 0 && mode <= 4)
-        {
             changeMode((CarMode)mode);
-        }
     }
-
-    // ------------------------------------------------
-    // TÓPICO: MOVIMIENTO (Solo válido en MODO 3)
-    // ------------------------------------------------
     else if (String(topic) == "smartcar/control/mover")
     {
         if (message == "ADELANTE")
@@ -161,18 +120,12 @@ void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int lengt
         else if (message == "STOP")
             Motors.stop();
     }
-
-    // ------------------------------------------------
-    // TÓPICO: LUCES Y CLAXON (Válido en cualquier modo)
-    // ------------------------------------------------
     else if (String(topic) == "smartcar/control/feedback")
     {
-        // Claxon
         if (message == "CLAXON_ON")
             Feedback.setHorn(true);
         else if (message == "CLAXON_OFF")
             Feedback.setHorn(false);
-        // Luces
         else if (message == "PREVENTIVAS")
             Feedback.setTurnSignal(SIGNAL_HAZARD);
         else if (message == "DIR_IZQ")
@@ -182,24 +135,15 @@ void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int lengt
         else if (message == "LUCES_OFF")
             Feedback.setTurnSignal(SIGNAL_OFF);
     }
-    // ------------------------------------------------
-    // TÓPICO: GPS (Destino del mapa)
-    // ------------------------------------------------
     else if (String(topic) == "smartcar/control/gps")
     {
-        // El mensaje viene así: "19.2452,-103.7240"
         int commaIndex = message.indexOf(',');
-
-        // Si encontramos la coma, separamos la cadena en dos partes
         if (commaIndex > 0)
         {
             String latStr = message.substring(0, commaIndex);
             String lngStr = message.substring(commaIndex + 1);
-
-            // Convertimos el texto a números double y los guardamos en las variables globales
             targetLat = latStr.toDouble();
             targetLng = lngStr.toDouble();
-
             Serial.print("📍 Nuevo destino recibido: ");
             Serial.print(targetLat, 6);
             Serial.print(", ");
@@ -208,8 +152,8 @@ void NetworkControl::mqttCallback(char *topic, byte *payload, unsigned int lengt
     }
     else if (String(topic) == "smartcar/control/velocidad")
     {
-        // Convertimos el texto ("100", "150", "255") a un número entero
-        currentSpeed = message.toInt();
+        int newSpeed = message.toInt();
+        currentSpeed = constrain(newSpeed, 0, 255);
         Serial.print("Velocidad actualizada a: ");
         Serial.println(currentSpeed);
     }
