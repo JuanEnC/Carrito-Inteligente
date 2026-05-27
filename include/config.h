@@ -8,7 +8,8 @@
 // ==========================================
 #define WIFI_SSID "Mario"
 #define WIFI_PASSWORD "smartcar"
-#define MQTT_SERVER "broker.hivemq.com"
+
+#define MQTT_SERVER "broker.hivemq.com" // Broker público de prueba
 #define MQTT_PORT 1883
 #define MQTT_CLIENT_ID "SmartCar_ESP32_01"
 
@@ -18,38 +19,48 @@
 // Motor Izquierdo
 #define MOTOR_L_IN1 26 
 #define MOTOR_L_IN2 27
-// Motor Derecho (⚠️ CORREGIR si usas pines de strapping)
+// Motor Derecho
 #define MOTOR_R_IN3 14
-#define MOTOR_R_IN4 33 // Cambiado del 12 a 33 para evitar problemas de strapping
+#define MOTOR_R_IN4 12 // Ojo: Desconectar este pin al subir el código (es de strapping)
 
 // ==========================================
 // ENCODERS DE VELOCIDAD (Directos al ESP-32)
 // ==========================================
+// Usamos los pines liberados por los LEDs para las interrupciones de alta velocidad
 #define ENCODER_L_PIN 19
 #define ENCODER_R_PIN 23
 
 // ==========================================
 // PINES DE SENSORES
 // ==========================================
+// Sensor Ultrasónico HC-SR04 (Modo 2)
 #define TRIG_PIN 5
 #define ECHO_PIN 18
+
+// Módulo GPS GY-NEO6MV2 (Modo 4)
 #define GPS_RX_PIN 16
 #define GPS_TX_PIN 17
 #define GPS_BAUDRATE 9600
+
 // Matriz Infrarroja TCRT5000 - 8 vías (Modo 1)
-// Ajusta los pines a GPIOS seguros!
-const uint8_t IR_PINS[8] = {36, 39, 26, 27, 14, 32, 25, 4};
+// NOTA: Se regresaron los pines 36 y 39 para evitar conflictos con el Serial (TX0) y el LED RGB
+const uint8_t IR_PINS[8] = {34, 35, 2, 15, 32, 33, 25, 4};
 
 // ==========================================
 // EXPANSOR I2C (PCF8574)
 // ==========================================
+// Pines del bus I2C nativo del ESP32
 #define I2C_SDA 21
 #define I2C_SCL 22
-#define PCF_ADDRESS 0x20
-#define PCF_LED_ROJO_L  0
-#define PCF_LED_ROJO_R  1
-#define PCF_LED_AMBAR_L 2
-#define PCF_LED_AMBAR_R 3
+#define PCF_ADDRESS 0x20 // Dirección I2C típica del módulo
+
+// Pines internos del expansor PCF8574 (canales del 0 al 7)
+#define PCF_LED_ROJO_L  0 // Freno Izquierdo
+#define PCF_LED_ROJO_R  1 // Freno Derecho
+#define PCF_LED_AMBAR_L 2 // Direccional Izquierda
+#define PCF_LED_AMBAR_R 3 // Direccional Derecha
+
+// NUEVOS: Pines del LED RGB dentro del expansor
 #define PCF_LED_RGB_R   4 
 #define PCF_LED_RGB_G   5 
 #define PCF_LED_RGB_B   6 
@@ -57,7 +68,9 @@ const uint8_t IR_PINS[8] = {36, 39, 26, 27, 14, 32, 25, 4};
 // ==========================================
 // FEEDBACK DIRECTO (ESP-32)
 // ==========================================
-#define BUZZER_PIN 13
+#define BUZZER_PIN 13 // Claxon
+
+// (Se eliminaron de aquí las definiciones anteriores de LED_RGB_R, G y B)
 
 // ==========================================
 // ESTADOS DEL SISTEMA
